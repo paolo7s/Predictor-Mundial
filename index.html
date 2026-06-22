@@ -146,11 +146,12 @@
   }
   .error-msg.visible { display: block; }
 
-  /* Market Settings */
+  /* Market & User Settings */
   .market-settings {
     margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border);
   }
-  .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .settings-section { margin-bottom: 20px; background: var(--surface); padding: 16px; border-radius: 14px; border: 1px solid var(--border); }
+  .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .market-title { font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 8px; }
   .market-toggle { 
     appearance: none; width: 40px; height: 22px; background: var(--surface2); border-radius: 20px;
@@ -163,11 +164,11 @@
   }
   .market-toggle:checked::after { transform: translateX(18px); }
   
-  .market-body { display: none; gap: 16px; flex-wrap: wrap; animation: fadeIn .3s ease; }
+  .market-body { display: none; gap: 12px; flex-wrap: wrap; animation: fadeIn .3s ease; }
   .market-toggle:checked ~ .market-body { display: flex; }
-  .market-input-group { flex: 1; min-width: 120px; background: var(--surface2); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
-  .market-input-group label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-  .market-input-group input { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; text-align: center; }
+  .market-input-group { flex: 1; min-width: 80px; background: var(--surface2); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+  .market-input-group label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .market-input-group input { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 6px; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; text-align: center; }
   .market-input-group input:focus { outline: none; border-color: var(--accent); }
   .weight-group { border-color: var(--purple); }
   .weight-group label { color: var(--purple); }
@@ -446,26 +447,53 @@
     <div class="error-msg" id="errorMsg"></div>
     
     <div class="market-settings">
-      <div class="market-header">
-        <div class="market-title">📈 Integrar Sabiduría del Mercado (Cuotas / Polymarket)</div>
-        <input type="checkbox" id="marketToggle" class="market-toggle">
+      <div class="settings-section">
+        <div class="market-header">
+          <div class="market-title">📈 Sabiduría del Mercado (Cuotas)</div>
+          <input type="checkbox" id="marketToggle" class="market-toggle">
+        </div>
+        <div class="market-body">
+          <div class="market-input-group weight-group">
+            <label>Peso (%)</label>
+            <input type="number" id="marketWeight" value="40" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Local (%)</label>
+            <input type="number" id="marketProbA" value="50" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Empate (%)</label>
+            <input type="number" id="marketProbD" value="25" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Visitante (%)</label>
+            <input type="number" id="marketProbB" value="25" min="0" max="100">
+          </div>
+        </div>
       </div>
-      <div class="market-body">
-        <div class="market-input-group weight-group">
-          <label>Ponderación (%)</label>
-          <input type="number" id="marketWeight" value="40" min="0" max="100">
+
+      <div class="settings-section">
+        <div class="market-header">
+          <div class="market-title">🧠 Intuición del Analista (Míster)</div>
+          <input type="checkbox" id="userToggle" class="market-toggle">
         </div>
-        <div class="market-input-group">
-          <label>Gana Equipo A (%)</label>
-          <input type="number" id="marketProbA" value="50" min="0" max="100">
-        </div>
-        <div class="market-input-group">
-          <label>Empate (%)</label>
-          <input type="number" id="marketProbD" value="25" min="0" max="100">
-        </div>
-        <div class="market-input-group">
-          <label>Gana Equipo B (%)</label>
-          <input type="number" id="marketProbB" value="25" min="0" max="100">
+        <div class="market-body">
+          <div class="market-input-group weight-group">
+            <label>Peso (%)</label>
+            <input type="number" id="userWeight" value="25" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Local (%)</label>
+            <input type="number" id="userProbA" value="50" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Empate (%)</label>
+            <input type="number" id="userProbD" value="30" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>Visitante (%)</label>
+            <input type="number" id="userProbB" value="20" min="0" max="100">
+          </div>
         </div>
       </div>
     </div>
@@ -1003,7 +1031,7 @@ function runPrediction() {
   const matrix = buildMatrix(lA, lB);
 
   let pA = 0, pB = 0, pD = 0;
-  // Calcular base estadística
+  // Calcular base estadística (Poisson + Dixon-Coles)
   for (let a = 0; a <= 5; a++) {
     for (let b = 0; b <= 5; b++) {
       const p = matrix[a][b];
@@ -1011,36 +1039,60 @@ function runPrediction() {
     }
   }
 
-  // Integración de Módulo de Mercado
+  // --- BLENDING AVANZADO ---
   const useMarket = document.getElementById('marketToggle').checked;
-  const marketW = parseFloat(document.getElementById('marketWeight').value) / 100;
-  let final_pA = pA, final_pB = pB, final_pD = pD;
-  let factorA = 1, factorB = 1, factorD = 1;
+  const useUser = document.getElementById('userToggle').checked;
+  
+  let wMarket = useMarket ? (parseFloat(document.getElementById('marketWeight').value) || 0) / 100 : 0;
+  let wUser = useUser ? (parseFloat(document.getElementById('userWeight').value) || 0) / 100 : 0;
+  
+  // Limitar pesos para no exceder el 100%
+  let totalW = wMarket + wUser;
+  if (totalW > 1) {
+    wMarket = wMarket / totalW;
+    wUser = wUser / totalW;
+  }
+  const wStat = 1.0 - wMarket - wUser;
 
-  if (useMarket && marketW > 0) {
+  let final_pA = pA * wStat;
+  let final_pD = pD * wStat;
+  let final_pB = pB * wStat;
+
+  // Sumar Mercado
+  if (wMarket > 0) {
     const mA = parseFloat(document.getElementById('marketProbA').value) || 0;
     const mD = parseFloat(document.getElementById('marketProbD').value) || 0;
     const mB = parseFloat(document.getElementById('marketProbB').value) || 0;
     const mTotal = mA + mD + mB;
     if (mTotal > 0) {
-      const norm_mA = (mA / mTotal) * 100;
-      const norm_mD = (mD / mTotal) * 100;
-      const norm_mB = (mB / mTotal) * 100;
-
-      final_pA = pA * (1 - marketW) + norm_mA * marketW;
-      final_pD = pD * (1 - marketW) + norm_mD * marketW;
-      final_pB = pB * (1 - marketW) + norm_mB * marketW;
-
-      factorA = pA > 0 ? final_pA / pA : 0;
-      factorD = pD > 0 ? final_pD / pD : 0;
-      factorB = pB > 0 ? final_pB / pB : 0;
+      final_pA += ((mA / mTotal) * 100) * wMarket;
+      final_pD += ((mD / mTotal) * 100) * wMarket;
+      final_pB += ((mB / mTotal) * 100) * wMarket;
     }
   }
+
+  // Sumar Analista
+  if (wUser > 0) {
+    const uA = parseFloat(document.getElementById('userProbA').value) || 0;
+    const uD = parseFloat(document.getElementById('userProbD').value) || 0;
+    const uB = parseFloat(document.getElementById('userProbB').value) || 0;
+    const uTotal = uA + uD + uB;
+    if (uTotal > 0) {
+      final_pA += ((uA / uTotal) * 100) * wUser;
+      final_pD += ((uD / uTotal) * 100) * wUser;
+      final_pB += ((uB / uTotal) * 100) * wUser;
+    }
+  }
+
+  // Factores para proyectar a la matriz de Dixon-Coles
+  const factorA = pA > 0 ? final_pA / pA : 0;
+  const factorD = pD > 0 ? final_pD / pD : 0;
+  const factorB = pB > 0 ? final_pB / pB : 0;
 
   let maxPct = 0, maxI = 0, maxJ = 0;
   const allScores = [];
   
-  // Aplicar blending al grid de Poisson
+  // Aplicar blending escalando las celdas de Dixon-Coles
   for (let a = 0; a <= 5; a++) {
     for (let b = 0; b <= 5; b++) {
       let p = matrix[a][b];
