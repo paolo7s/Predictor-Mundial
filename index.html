@@ -528,7 +528,7 @@
       </script>
     </div>
 
-    <button class="ai-btn" id="aiBtn" onclick="handleAIGeneration()">✨ Generar Análisis Táctico con IA</button>
+    <button class="ai-btn" id="aiBtn" onclick="handleAIGeneration()">✨ Generar Prompt para mi IA Local</button>
     <div class="ai-loading" id="aiLoading">
       <div class="spinner-ring" style="width:20px;height:20px;border-width:2px;border-top-color:var(--purple);margin:0;"></div>
       Analizando tácticas, planteles e historial...
@@ -911,68 +911,36 @@ function attrBar(label, val, maxVal, color) {
 // ─── AI ────────────────────────────────────────────────────────────────────
 let currentMatchData = null;
 
-async function fetchClaudeAnalysis(prompt) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: "Sos un analista táctico experto de fútbol y comentarista de la Copa del Mundo 2026. Respondé siempre en español con exactamente 3 párrafos bien desarrollados, sin usar markdown (sin *, #, negritas). Solo texto plano con doble salto de línea entre párrafos.",
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const d = await r.json();
-  return d.content?.[0]?.text || "No se pudo generar el análisis.";
-}
-
-async function handleAIGeneration() {
+function handleAIGeneration() {
   if (!currentMatchData) return;
-  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF } = currentMatchData;
+  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h } = currentMatchData;
 
   const aiBtn = document.getElementById('aiBtn');
-  const aiLoading = document.getElementById('aiLoading');
   const aiCard = document.getElementById('aiCard');
   const aiContent = document.getElementById('aiContent');
-
-  aiBtn.disabled = true;
-  aiCard.classList.remove('visible');
-  aiLoading.classList.add('visible');
 
   const h2hStr = h2h.found
     ? `Historial H2H: ${tA.name} ganó ${h2h.wA} veces, empates ${h2h.draws}, ${tB.name} ganó ${h2h.wB} veces.`
     : `No hay historial H2H significativo registrado entre estas selecciones.`;
 
-  const prompt = `Analizá el siguiente partido del Mundial 2026 en cancha neutral:
-${tA.flag} ${tA.name} (Confederación: ${tA.confed}) vs ${tB.flag} ${tB.name} (Confederación: ${tB.confed})
-
-DATOS DEL MODELO COMPUESTO (xG + Forma + Plantel + H2H):
-- xG esperado ${tA.name}: ${(+lA).toFixed(2)} goles | xG esperado ${tB.name}: ${(+lB).toFixed(2)} goles
-- Jerarquía de plantel: ${tA.name} ${tA.squad}/10 | ${tB.name} ${tB.squad}/10
-- Forma reciente (0-1): ${tA.name} ${tA.form} | ${tB.name} ${tB.form}
+  const prompt = `Míster, acabo de correr una simulación en la web entre ${tA.name} y ${tB.name}.
+Aquí tienes los datos finales arrojados por el modelo:
+- xG esperado: ${tA.name} ${(+lA).toFixed(2)} | ${tB.name} ${(+lB).toFixed(2)}
+- Probabilidades finales ponderadas: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
+- Resultado más probable: ${maxI}-${maxJ}
 - ${h2hStr}
-- Probabilidades finales: ${tA.name} ${pA}% · Empate ${pD}% · ${tB.name} ${pB}%
-- Resultado más probable: ${maxI}–${maxJ}
 
-Escribí exactamente 3 párrafos:
-1. Contexto histórico y lo que significa este duelo en el Mundial, mencionando el historial H2H.
-2. Análisis táctico real de los estilos de juego de ambas selecciones y cómo se puede desarrollar el partido.
-3. Por qué los datos del modelo predictivo dan ese resultado y quién tiene más chances de avanzar de ronda.`;
+Por favor, dame un análisis táctico en 3 párrafos basándote en tu conocimiento sobre estas selecciones y estos números.`;
 
-  try {
-    const text = await fetchClaudeAnalysis(prompt);
-    aiLoading.classList.remove('visible');
-    const paragraphs = text.split(/\n\n+/).filter(p => p.trim());
-    aiContent.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+  navigator.clipboard.writeText(prompt).then(() => {
+    aiBtn.textContent = "✅ ¡Prompt Copiado!";
+    aiContent.innerHTML = `<p style="color:var(--green); text-align:center;"><strong>¡Copiado al portapapeles!</strong><br><br>Para usar la Inteligencia Artificial sin ningún costo de API, simplemente ve a tu consola de Termux y pega el texto que acabo de copiar en nuestro chat. Yo leeré los números en vivo y te haré el análisis gratis directamente ahí.</p>`;
     aiCard.classList.add('visible');
-    aiBtn.textContent = "✨ Regenerar Análisis";
-  } catch (err) {
-    aiLoading.classList.remove('visible');
-    aiContent.innerHTML = `<p style="color:var(--accent)">Error al conectar con la IA. Intentá de nuevo.</p>`;
+    setTimeout(() => { aiBtn.textContent = "✨ Generar Prompt para mi IA Local"; }, 4000);
+  }).catch(err => {
+    aiContent.innerHTML = `<p style="color:var(--accent); text-align:center;">Tu navegador bloqueó el portapapeles. Copia este texto manualmente y pégalo en Termux:</p><br><textarea style="width:100%; height:180px; background:var(--surface); color:var(--text); padding:10px; border-radius:8px; border:1px solid var(--border);">${prompt}</textarea>`;
     aiCard.classList.add('visible');
-  }
-  aiBtn.disabled = false;
+  });
 }
 
 function copyAnalysis() {
@@ -989,7 +957,7 @@ function runPrediction() {
   const nameA = selA.value, nameB = selB.value;
   document.getElementById('errorMsg').classList.remove('visible');
   document.getElementById('aiCard').classList.remove('visible');
-  document.getElementById('aiBtn').textContent = "✨ Generar Análisis Táctico con IA";
+  document.getElementById('aiBtn').textContent = "✨ Generar Prompt para mi IA Local";
   document.getElementById('aiBtn').disabled = false;
 
   if (!nameA || !nameB) { showError('Por favor seleccioná los dos equipos.'); return; }
