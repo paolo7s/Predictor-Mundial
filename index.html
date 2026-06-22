@@ -458,16 +458,36 @@
             <input type="number" id="userWeight" value="25" min="0" max="100">
           </div>
           <div class="market-input-group">
-            <label>Local (%)</label>
+            <label>1X2 Local (%)</label>
             <input type="number" id="userProbA" value="50" min="0" max="100">
           </div>
           <div class="market-input-group">
-            <label>Empate (%)</label>
+            <label>1X2 Empate (%)</label>
             <input type="number" id="userProbD" value="30" min="0" max="100">
           </div>
           <div class="market-input-group">
-            <label>Visitante (%)</label>
+            <label>1X2 Visit. (%)</label>
             <input type="number" id="userProbB" value="20" min="0" max="100">
+          </div>
+          <div class="market-input-group">
+            <label>xG Local (goles)</label>
+            <input type="number" id="userXgA" step="0.1" placeholder="Opcional">
+          </div>
+          <div class="market-input-group">
+            <label>xG Visit. (goles)</label>
+            <input type="number" id="userXgB" step="0.1" placeholder="Opcional">
+          </div>
+          <div class="market-input-group">
+            <label>V. Invicta Loc. (%)</label>
+            <input type="number" id="userCsA" min="0" max="100" placeholder="Opcional">
+          </div>
+          <div class="market-input-group">
+            <label>V. Invicta Vis. (%)</label>
+            <input type="number" id="userCsB" min="0" max="100" placeholder="Opcional">
+          </div>
+          <div class="market-input-group">
+            <label>+2.5 Goles (%)</label>
+            <input type="number" id="userOver25" min="0" max="100" placeholder="Opcional">
           </div>
         </div>
       </div>
@@ -889,7 +909,7 @@ let currentMatchData = null;
 
 function handleAIGeneration() {
   if (!currentMatchData) return;
-  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF } = currentMatchData;
+  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF, userExtra } = currentMatchData;
 
   const aiBtn = document.getElementById('aiBtn');
   const aiCard = document.getElementById('aiCard');
@@ -898,6 +918,19 @@ function handleAIGeneration() {
   const h2hStr = h2h.found
     ? `Historial H2H: ${tA.name} ganó ${h2h.wA} veces, empates ${h2h.draws}, ${tB.name} ganó ${h2h.wB} veces.`
     : `No hay historial H2H significativo registrado entre estas selecciones.`;
+
+  let extraText = "";
+  if (userExtra && userExtra.use) {
+    let exParts = [];
+    if (userExtra.xgA) exParts.push(`xG Local (${tA.name}): ${userExtra.xgA}`);
+    if (userExtra.xgB) exParts.push(`xG Visitante (${tB.name}): ${userExtra.xgB}`);
+    if (userExtra.csA) exParts.push(`Prob. Valla Invicta Local (${tA.name}): ${userExtra.csA}%`);
+    if (userExtra.csB) exParts.push(`Prob. Valla Invicta Visitante (${tB.name}): ${userExtra.csB}%`);
+    if (userExtra.o25) exParts.push(`Prob. Más de 2.5 goles en total: ${userExtra.o25}%`);
+    if (exParts.length > 0) {
+      extraText = `\n\nDATOS ADICIONALES DEL ANALISTA (Variables Críticas a Ponderar):\n- ` + exParts.join('\n- ');
+    }
+  }
 
   const prompt = `Míster, acabo de correr una simulación en la web entre ${tA.name} y ${tB.name}.
 Aquí tienes los datos completos calculados por la aplicación base web:
@@ -910,7 +943,7 @@ DATOS ESTADÍSTICOS Y CONTEXTUALES:
 
 RESULTADOS DEL MOTOR BIVARIADO (Dixon-Coles + Intuición):
 - Probabilidades de victoria: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
-- Resultado exacto más probable: ${maxI}-${maxJ}
+- Resultado exacto más probable: ${maxI}-${maxJ}${extraText}
 
 Por favor, necesito que hagas lo siguiente:
 1. Utiliza tus herramientas para buscar e investigar las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y en Polymarket.
@@ -1045,11 +1078,20 @@ function runPrediction() {
   const csA    = allScores.filter(s => s.b === 0).reduce((acc,s) => acc+s.p, 0);
   const h2h    = getH2H(nameA, nameB);
 
+  const userExtra = {
+    use: document.getElementById('userToggle').checked,
+    xgA: document.getElementById('userXgA').value,
+    xgB: document.getElementById('userXgB').value,
+    csA: document.getElementById('userCsA').value,
+    csB: document.getElementById('userCsB').value,
+    o25: document.getElementById('userOver25').value
+  };
+
   currentMatchData = {
     tA, tB,
     pA: pA.toFixed(1), pD: pD.toFixed(1), pB: pB.toFixed(1),
     maxI, maxJ, lA: lA.toFixed(3), lB: lB.toFixed(3),
-    h2h, squadF: sf, formF: ff
+    h2h, squadF: sf, formF: ff, userExtra
   };
 
   setTimeout(() => {
