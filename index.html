@@ -146,6 +146,32 @@
   }
   .error-msg.visible { display: block; }
 
+  /* Market Settings */
+  .market-settings {
+    margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border);
+  }
+  .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .market-title { font-size: 13px; font-weight: 700; color: var(--text-soft); display: flex; align-items: center; gap: 8px; }
+  .market-toggle { 
+    appearance: none; width: 40px; height: 22px; background: var(--surface2); border-radius: 20px;
+    position: relative; cursor: pointer; outline: none; border: 1px solid var(--border); transition: 0.3s;
+  }
+  .market-toggle:checked { background: var(--accent); border-color: var(--accent); }
+  .market-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: white; border-radius: 50%; transition: 0.3s;
+  }
+  .market-toggle:checked::after { transform: translateX(18px); }
+  
+  .market-body { display: none; gap: 16px; flex-wrap: wrap; animation: fadeIn .3s ease; }
+  .market-toggle:checked ~ .market-body { display: flex; }
+  .market-input-group { flex: 1; min-width: 120px; background: var(--surface2); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+  .market-input-group label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .market-input-group input { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; text-align: center; }
+  .market-input-group input:focus { outline: none; border-color: var(--accent); }
+  .weight-group { border-color: var(--purple); }
+  .weight-group label { color: var(--purple); }
+
   .loading { display: none; text-align: center; padding: 48px 24px; }
   .loading.visible { display: block; }
   .spinner-ring {
@@ -418,6 +444,31 @@
       <button class="clear-btn" onclick="clearResults()">Limpiar</button>
     </div>
     <div class="error-msg" id="errorMsg"></div>
+    
+    <div class="market-settings">
+      <div class="market-header">
+        <div class="market-title">📈 Integrar Sabiduría del Mercado (Cuotas / Polymarket)</div>
+        <input type="checkbox" id="marketToggle" class="market-toggle">
+      </div>
+      <div class="market-body">
+        <div class="market-input-group weight-group">
+          <label>Ponderación (%)</label>
+          <input type="number" id="marketWeight" value="40" min="0" max="100">
+        </div>
+        <div class="market-input-group">
+          <label>Gana Equipo A (%)</label>
+          <input type="number" id="marketProbA" value="50" min="0" max="100">
+        </div>
+        <div class="market-input-group">
+          <label>Empate (%)</label>
+          <input type="number" id="marketProbD" value="25" min="0" max="100">
+        </div>
+        <div class="market-input-group">
+          <label>Gana Equipo B (%)</label>
+          <input type="number" id="marketProbB" value="25" min="0" max="100">
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="loading" id="loading">
@@ -952,18 +1003,55 @@ function runPrediction() {
   const matrix = buildMatrix(lA, lB);
 
   let pA = 0, pB = 0, pD = 0;
-  let maxPct = 0, maxI = 0, maxJ = 0;
-  const allScores = [];
-
+  // Calcular base estadística
   for (let a = 0; a <= 5; a++) {
     for (let b = 0; b <= 5; b++) {
       const p = matrix[a][b];
       if (a > b) pA += p; else if (b > a) pB += p; else pD += p;
+    }
+  }
+
+  // Integración de Módulo de Mercado
+  const useMarket = document.getElementById('marketToggle').checked;
+  const marketW = parseFloat(document.getElementById('marketWeight').value) / 100;
+  let final_pA = pA, final_pB = pB, final_pD = pD;
+  let factorA = 1, factorB = 1, factorD = 1;
+
+  if (useMarket && marketW > 0) {
+    const mA = parseFloat(document.getElementById('marketProbA').value) || 0;
+    const mD = parseFloat(document.getElementById('marketProbD').value) || 0;
+    const mB = parseFloat(document.getElementById('marketProbB').value) || 0;
+    const mTotal = mA + mD + mB;
+    if (mTotal > 0) {
+      const norm_mA = (mA / mTotal) * 100;
+      const norm_mD = (mD / mTotal) * 100;
+      const norm_mB = (mB / mTotal) * 100;
+
+      final_pA = pA * (1 - marketW) + norm_mA * marketW;
+      final_pD = pD * (1 - marketW) + norm_mD * marketW;
+      final_pB = pB * (1 - marketW) + norm_mB * marketW;
+
+      factorA = pA > 0 ? final_pA / pA : 0;
+      factorD = pD > 0 ? final_pD / pD : 0;
+      factorB = pB > 0 ? final_pB / pB : 0;
+    }
+  }
+
+  let maxPct = 0, maxI = 0, maxJ = 0;
+  const allScores = [];
+  
+  // Aplicar blending al grid de Poisson
+  for (let a = 0; a <= 5; a++) {
+    for (let b = 0; b <= 5; b++) {
+      let p = matrix[a][b];
+      if (a > b) p *= factorA; else if (b > a) p *= factorB; else p *= factorD;
+      matrix[a][b] = p;
       allScores.push({ a, b, p });
       if (p > maxPct) { maxPct = p; maxI = a; maxJ = b; }
     }
   }
 
+  pA = final_pA; pD = final_pD; pB = final_pB;
   const top3 = [...allScores].sort((x,y) => y.p - x.p).slice(0, 3);
   const btts   = allScores.filter(s => s.a > 0 && s.b > 0).reduce((acc,s) => acc+s.p, 0);
   const over25 = allScores.filter(s => s.a+s.b > 2).reduce((acc,s) => acc+s.p, 0);
