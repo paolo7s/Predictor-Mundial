@@ -446,30 +446,6 @@
     <div class="error-msg" id="errorMsg"></div>
     
     <div class="market-settings">
-      <div class="settings-section">
-        <div class="market-header">
-          <div class="market-title">📈 Sabiduría del Mercado (Cuotas)</div>
-          <input type="checkbox" id="marketToggle" class="market-toggle" onchange="document.getElementById('marketBody').style.display = this.checked ? 'flex' : 'none'">
-        </div>
-        <div class="market-body" id="marketBody">
-          <div class="market-input-group weight-group">
-            <label>Peso (%)</label>
-            <input type="number" id="marketWeight" value="40" min="0" max="100">
-          </div>
-          <div class="market-input-group">
-            <label>Local (%)</label>
-            <input type="number" id="marketProbA" value="50" min="0" max="100">
-          </div>
-          <div class="market-input-group">
-            <label>Empate (%)</label>
-            <input type="number" id="marketProbD" value="25" min="0" max="100">
-          </div>
-          <div class="market-input-group">
-            <label>Visitante (%)</label>
-            <input type="number" id="marketProbB" value="25" min="0" max="100">
-          </div>
-        </div>
-      </div>
 
       <div class="settings-section">
         <div class="market-header">
@@ -924,13 +900,16 @@ function handleAIGeneration() {
     : `No hay historial H2H significativo registrado entre estas selecciones.`;
 
   const prompt = `Míster, acabo de correr una simulación en la web entre ${tA.name} y ${tB.name}.
-Aquí tienes los datos finales arrojados por el modelo:
+Aquí tienes los datos base arrojados por el modelo estadístico web (incluyendo mi intuición si la configuré):
 - xG esperado: ${tA.name} ${(+lA).toFixed(2)} | ${tB.name} ${(+lB).toFixed(2)}
-- Probabilidades finales ponderadas: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
-- Resultado más probable: ${maxI}-${maxJ}
+- Probabilidades arrojadas: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
+- Resultado exacto más probable: ${maxI}-${maxJ}
 - ${h2hStr}
 
-Por favor, dame un análisis táctico en 3 párrafos basándote en tu conocimiento sobre estas selecciones y estos números.`;
+Por favor, necesito que hagas lo siguiente:
+1. Utiliza tus herramientas para buscar e investigar los valores y cuotas reales actuales en prestigiosas casas de apuestas y en Polymarket.
+2. Aplica una ponderación integrando esa Sabiduría del Mercado con los datos estadísticos que te acabo de pasar (una combinación de varias fuentes).
+3. Finalmente, dame un pronóstico y un análisis táctico en 3 párrafos considerando todo el panorama general.`;
 
   navigator.clipboard.writeText(prompt).then(() => {
     aiBtn.textContent = "✅ ¡Prompt Copiado!";
@@ -1007,36 +986,19 @@ function runPrediction() {
   }
 
   // --- BLENDING AVANZADO ---
-  const useMarket = document.getElementById('marketToggle').checked;
   const useUser = document.getElementById('userToggle').checked;
   
-  let wMarket = useMarket ? (parseFloat(document.getElementById('marketWeight').value) || 0) / 100 : 0;
   let wUser = useUser ? (parseFloat(document.getElementById('userWeight').value) || 0) / 100 : 0;
   
   // Limitar pesos para no exceder el 100%
-  let totalW = wMarket + wUser;
-  if (totalW > 1) {
-    wMarket = wMarket / totalW;
-    wUser = wUser / totalW;
+  if (wUser > 1) {
+    wUser = 1;
   }
-  const wStat = 1.0 - wMarket - wUser;
+  const wStat = 1.0 - wUser;
 
   let final_pA = pA * wStat;
   let final_pD = pD * wStat;
   let final_pB = pB * wStat;
-
-  // Sumar Mercado
-  if (wMarket > 0) {
-    const mA = parseFloat(document.getElementById('marketProbA').value) || 0;
-    const mD = parseFloat(document.getElementById('marketProbD').value) || 0;
-    const mB = parseFloat(document.getElementById('marketProbB').value) || 0;
-    const mTotal = mA + mD + mB;
-    if (mTotal > 0) {
-      final_pA += ((mA / mTotal) * 100) * wMarket;
-      final_pD += ((mD / mTotal) * 100) * wMarket;
-      final_pB += ((mB / mTotal) * 100) * wMarket;
-    }
-  }
 
   // Sumar Analista
   if (wUser > 0) {
@@ -1270,20 +1232,16 @@ function renderResults(tA, tB, matrix, pA, pD, pB, lA, lB, maxPct, maxI, maxJ, t
   const squadImpact = ((sf.fA - 1) * 100).toFixed(1);
   const h2hImpact = h2h.found ? ((h2h.wA/(h2h.wA+h2h.draws+h2h.wB)*100 - 33).toFixed(0) + '% win rate hist.') : 'sin datos';
 
-  const useMarket = document.getElementById('marketToggle').checked;
   const useUser = document.getElementById('userToggle').checked;
-  let wM = useMarket ? (parseFloat(document.getElementById('marketWeight').value) || 0) : 0;
   let wU = useUser ? (parseFloat(document.getElementById('userWeight').value) || 0) : 0;
-  let tW = (wM + wU) / 100;
-  if (tW > 1) { wM = (wM/100/tW)*100; wU = (wU/100/tW)*100; }
-  let wS = 100 - wM - wU;
+  if (wU > 100) { wU = 100; }
+  let wS = 100 - wU;
 
   let extraExplanation = "";
   let extraChips = "";
-  if (useMarket || useUser) {
-    extraExplanation = ` Además, los resultados finales fueron escalados matemáticamente para integrar la intuición humana y del mercado, conservando sin romper la distribución de empates hipergeométrica de Dixon-Coles.`;
-    if (useMarket) extraChips += `<div class="weight-chip">Mercado Financiero <span style="color:var(--accent)">${wM.toFixed(1)}%</span> peso maestro</div>`;
-    if (useUser) extraChips += `<div class="weight-chip">Míster (Analista) <span style="color:var(--accent2)">${wU.toFixed(1)}%</span> peso maestro</div>`;
+  if (useUser) {
+    extraExplanation = ` Además, los resultados finales fueron escalados matemáticamente para integrar la intuición humana, conservando sin romper la distribución de empates hipergeométrica de Dixon-Coles.`;
+    extraChips += `<div class="weight-chip">Míster (Analista) <span style="color:var(--accent2)">${wU.toFixed(1)}%</span> peso maestro</div>`;
     extraChips += `<div class="weight-chip">Motor Estadístico IA <span style="color:var(--green)">${wS.toFixed(1)}%</span> peso restante</div>`;
   }
 
