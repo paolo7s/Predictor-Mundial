@@ -165,7 +165,6 @@
   .market-toggle:checked::after { transform: translateX(18px); }
   
   .market-body { display: none; gap: 12px; flex-wrap: wrap; animation: fadeIn .3s ease; }
-  .market-toggle:checked ~ .market-body { display: flex; }
   .market-input-group { flex: 1; min-width: 80px; background: var(--surface2); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
   .market-input-group label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
   .market-input-group input { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 6px; border-radius: 6px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; text-align: center; }
@@ -450,9 +449,9 @@
       <div class="settings-section">
         <div class="market-header">
           <div class="market-title">📈 Sabiduría del Mercado (Cuotas)</div>
-          <input type="checkbox" id="marketToggle" class="market-toggle">
+          <input type="checkbox" id="marketToggle" class="market-toggle" onchange="document.getElementById('marketBody').style.display = this.checked ? 'flex' : 'none'">
         </div>
-        <div class="market-body">
+        <div class="market-body" id="marketBody">
           <div class="market-input-group weight-group">
             <label>Peso (%)</label>
             <input type="number" id="marketWeight" value="40" min="0" max="100">
@@ -475,9 +474,9 @@
       <div class="settings-section">
         <div class="market-header">
           <div class="market-title">🧠 Intuición del Analista (Míster)</div>
-          <input type="checkbox" id="userToggle" class="market-toggle">
+          <input type="checkbox" id="userToggle" class="market-toggle" onchange="document.getElementById('userBody').style.display = this.checked ? 'flex' : 'none'">
         </div>
-        <div class="market-body">
+        <div class="market-body" id="userBody">
           <div class="market-input-group weight-group">
             <label>Peso (%)</label>
             <input type="number" id="userWeight" value="25" min="0" max="100">
@@ -1302,13 +1301,32 @@ function renderResults(tA, tB, matrix, pA, pD, pB, lA, lB, maxPct, maxI, maxJ, t
   const formImpact = ((ff.fA - 1) * 100).toFixed(1);
   const squadImpact = ((sf.fA - 1) * 100).toFixed(1);
   const h2hImpact = h2h.found ? ((h2h.wA/(h2h.wA+h2h.draws+h2h.wB)*100 - 33).toFixed(0) + '% win rate hist.') : 'sin datos';
+
+  const useMarket = document.getElementById('marketToggle').checked;
+  const useUser = document.getElementById('userToggle').checked;
+  let wM = useMarket ? (parseFloat(document.getElementById('marketWeight').value) || 0) : 0;
+  let wU = useUser ? (parseFloat(document.getElementById('userWeight').value) || 0) : 0;
+  let tW = (wM + wU) / 100;
+  if (tW > 1) { wM = (wM/100/tW)*100; wU = (wU/100/tW)*100; }
+  let wS = 100 - wM - wU;
+
+  let extraExplanation = "";
+  let extraChips = "";
+  if (useMarket || useUser) {
+    extraExplanation = ` Además, los resultados finales fueron escalados matemáticamente para integrar la intuición humana y del mercado, conservando sin romper la distribución de empates hipergeométrica de Dixon-Coles.`;
+    if (useMarket) extraChips += `<div class="weight-chip">Mercado Financiero <span style="color:var(--accent)">${wM.toFixed(1)}%</span> peso maestro</div>`;
+    if (useUser) extraChips += `<div class="weight-chip">Míster (Analista) <span style="color:var(--accent2)">${wU.toFixed(1)}%</span> peso maestro</div>`;
+    extraChips += `<div class="weight-chip">Motor Estadístico IA <span style="color:var(--green)">${wS.toFixed(1)}%</span> peso restante</div>`;
+  }
+
   document.getElementById('modelExplainer').innerHTML = `
-    <strong>🔬 Cómo se calculó este resultado:</strong> El modelo cruza el xG de cada equipo con la solidez defensiva del rival. Luego aplica 3 ajustes dinámicos y finalmente procesa la matriz con el <strong>algoritmo bivariado de Dixon-Coles</strong> (ρ = -0.15) para corregir la dependencia estadística y calcular los empates con alta precisión.
+    <strong>🔬 Cómo se calculó este resultado:</strong> El modelo cruza el xG de cada equipo con la solidez defensiva del rival. Luego aplica 3 ajustes dinámicos y finalmente procesa la matriz con el <strong>algoritmo bivariado de Dixon-Coles</strong> (ρ = -0.15) para corregir la dependencia estadística y calcular los empates con alta precisión.${extraExplanation}
     <div class="model-weights">
-      <div class="weight-chip">xG base <span style="color:var(--accent2)">${(W.xg*100).toFixed(0)}%</span> peso</div>
-      <div class="weight-chip">Forma reciente <span style="color:var(--green)">${(W.form*100).toFixed(0)}%</span> peso — impacto ${formImpact}% en λ de ${tA.name}</div>
-      <div class="weight-chip">Jerarquía plantel <span style="color:var(--gold)">${(W.squad*100).toFixed(0)}%</span> peso — impacto ${squadImpact}% en λ</div>
-      <div class="weight-chip">Historial H2H <span style="color:var(--purple)">${(W.h2h*100).toFixed(0)}%</span> peso — ${h2hImpact}</div>
+      <div class="weight-chip">xG base <span style="color:var(--accent2)">${(W.xg*100).toFixed(0)}%</span> peso estadístico</div>
+      <div class="weight-chip">Forma reciente <span style="color:var(--green)">${(W.form*100).toFixed(0)}%</span> peso estadístico — impacto ${formImpact}% en λ de ${tA.name}</div>
+      <div class="weight-chip">Jerarquía plantel <span style="color:var(--gold)">${(W.squad*100).toFixed(0)}%</span> peso estadístico — impacto ${squadImpact}% en λ</div>
+      <div class="weight-chip">Historial H2H <span style="color:var(--purple)">${(W.h2h*100).toFixed(0)}%</span> peso estadístico — ${h2hImpact}</div>
+      ${extraChips}
     </div>
   `;
 
