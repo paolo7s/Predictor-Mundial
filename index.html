@@ -945,10 +945,14 @@ RESULTADOS DEL MOTOR BIVARIADO (Dixon-Coles + Intuición):
 - Probabilidades de victoria: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
 - Resultado exacto más probable: ${maxI}-${maxJ}${extraText}
 
-Por favor, necesito que hagas lo siguiente:
-1. Utiliza tus herramientas para buscar e investigar las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y en Polymarket.
-2. Integra esa "Sabiduría del Mercado" con todos los datos estadísticos arrojados arriba, dándole tú mismo una ponderación lógica.
-3. A partir de toda esta combinación de datos, dame un análisis táctico en 3 párrafos y el pronóstico final definitivo.`;
+Por favor, necesito que hagas lo siguiente investigando en tiempo real:
+1. Busca la situación actual de ambos equipos en su grupo del Mundial y qué resultado están obligados a conseguir.
+2. Lee las últimas noticias relevantes sobre el estado, lesiones o situación interna de ambos equipos.
+3. Busca e investiga las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y Polymarket.
+
+Finalmente, dame un análisis táctico completo en 3 párrafos y entrega DOS pronósticos finales:
+- Pronóstico A (Estadístico Puro): Basado solo en la estadística del modelo, noticias, contexto del grupo y la intuición del analista, SIN considerar el mercado financiero.
+- Pronóstico B (Mercado Ponderado): Integrando el pronóstico A con la "Sabiduría del Mercado" (casas de apuestas y Polymarket).`;
 
   navigator.clipboard.writeText(prompt).then(() => {
     aiBtn.textContent = "✅ ¡Prompt Copiado!";
