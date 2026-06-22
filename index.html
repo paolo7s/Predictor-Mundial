@@ -889,7 +889,7 @@ let currentMatchData = null;
 
 function handleAIGeneration() {
   if (!currentMatchData) return;
-  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h } = currentMatchData;
+  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF } = currentMatchData;
 
   const aiBtn = document.getElementById('aiBtn');
   const aiCard = document.getElementById('aiCard');
@@ -900,20 +900,26 @@ function handleAIGeneration() {
     : `No hay historial H2H significativo registrado entre estas selecciones.`;
 
   const prompt = `Míster, acabo de correr una simulación en la web entre ${tA.name} y ${tB.name}.
-Aquí tienes los datos base arrojados por el modelo estadístico web (incluyendo mi intuición si la configuré):
+Aquí tienes los datos completos calculados por la aplicación base web:
+
+DATOS ESTADÍSTICOS Y CONTEXTUALES:
 - xG esperado: ${tA.name} ${(+lA).toFixed(2)} | ${tB.name} ${(+lB).toFixed(2)}
-- Probabilidades arrojadas: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
-- Resultado exacto más probable: ${maxI}-${maxJ}
+- Jerarquía de plantel: ${tA.name} ${tA.squad}/10 | ${tB.name} ${tB.squad}/10
+- Forma reciente (0-1): ${tA.name} ${tA.form} | ${tB.name} ${tB.form}
 - ${h2hStr}
 
+RESULTADOS DEL MOTOR BIVARIADO (Dixon-Coles + Intuición):
+- Probabilidades de victoria: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
+- Resultado exacto más probable: ${maxI}-${maxJ}
+
 Por favor, necesito que hagas lo siguiente:
-1. Utiliza tus herramientas para buscar e investigar los valores y cuotas reales actuales en prestigiosas casas de apuestas y en Polymarket.
-2. Aplica una ponderación integrando esa Sabiduría del Mercado con los datos estadísticos que te acabo de pasar (una combinación de varias fuentes).
-3. Finalmente, dame un pronóstico y un análisis táctico en 3 párrafos considerando todo el panorama general.`;
+1. Utiliza tus herramientas para buscar e investigar las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y en Polymarket.
+2. Integra esa "Sabiduría del Mercado" con todos los datos estadísticos arrojados arriba, dándole tú mismo una ponderación lógica.
+3. A partir de toda esta combinación de datos, dame un análisis táctico en 3 párrafos y el pronóstico final definitivo.`;
 
   navigator.clipboard.writeText(prompt).then(() => {
     aiBtn.textContent = "✅ ¡Prompt Copiado!";
-    aiContent.innerHTML = `<p style="color:var(--green); text-align:center;"><strong>¡Copiado al portapapeles!</strong><br><br>Para usar la Inteligencia Artificial sin ningún costo de API, simplemente ve a tu consola de Termux y pega el texto que acabo de copiar en nuestro chat. Yo leeré los números en vivo y te haré el análisis gratis directamente ahí.</p>`;
+    aiContent.innerHTML = `<p style="color:var(--green); text-align:center;"><strong>¡Copiado al portapapeles exitosamente!</strong><br><br>Ve a nuestra consola de Termux y pega este texto en el chat. Yo leeré los datos, haré la búsqueda en Polymarket y te daré el análisis gratis.</p><br><textarea readonly style="width:100%; height:180px; background:var(--surface); color:var(--text); padding:10px; border-radius:8px; border:1px solid var(--border);">${prompt}</textarea>`;
     aiCard.classList.add('visible');
     setTimeout(() => { aiBtn.textContent = "✨ Generar Prompt para mi IA Local"; }, 4000);
   }).catch(err => {
