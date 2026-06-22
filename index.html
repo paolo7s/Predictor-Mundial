@@ -909,7 +909,7 @@ let currentMatchData = null;
 
 function handleAIGeneration() {
   if (!currentMatchData) return;
-  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF, userExtra } = currentMatchData;
+  const { tA, tB, pA, pD, pB, maxI, maxJ, lA, lB, h2h, squadF, formF, userExtra, top5, btts, over25, csA, csB } = currentMatchData;
 
   const aiBtn = document.getElementById('aiBtn');
   const aiCard = document.getElementById('aiCard');
@@ -942,12 +942,19 @@ DATOS ESTADÍSTICOS Y CONTEXTUALES:
 - ${h2hStr}
 
 RESULTADOS DEL MOTOR BIVARIADO (Dixon-Coles + Intuición):
-- Probabilidades de victoria: ${tA.name} ${pA}% | Empate ${pD}% | ${tB.name} ${pB}%
-- Resultado exacto más probable: ${maxI}-${maxJ}${extraText}
+- Probabilidades 1X2: Local ${pA}% | Empate ${pD}% | Visitante ${pB}%
+- Valla Invicta: ${tA.name} ${csA}% | ${tB.name} ${csB}%
+- Más de 2.5 Goles: ${over25}% | Ambos Marcan: ${btts}%
+- Los 5 Resultados Exactos Más Probables:
+  1. ${top5[0].a}-${top5[0].b} (${top5[0].p.toFixed(1)}%)
+  2. ${top5[1].a}-${top5[1].b} (${top5[1].p.toFixed(1)}%)
+  3. ${top5[2].a}-${top5[2].b} (${top5[2].p.toFixed(1)}%)
+  4. ${top5[3].a}-${top5[3].b} (${top5[3].p.toFixed(1)}%)
+  5. ${top5[4].a}-${top5[4].b} (${top5[4].p.toFixed(1)}%)${extraText}
 
 Por favor, necesito que hagas lo siguiente investigando en tiempo real:
-1. Busca la situación actual de ambos equipos en su grupo del Mundial y qué resultado están obligados a conseguir.
-2. Lee las últimas noticias relevantes sobre el estado, lesiones o situación interna de ambos equipos.
+1. Busca la situación de ambos equipos en la fase de grupos. Determina la urgencia de victoria o si un empate les conviene, analizando especialmente la especulación sobre LOS RIVALES QUE LES QUEDAN (ej: si les queda un rival débil, un empate hoy puede no ser malo; si les queda un rival fuerte, están obligados a ganar hoy).
+2. Lee las últimas noticias relevantes sobre el estado físico, lesiones o situación anímica/interna de ambos equipos.
 3. Busca e investiga las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y Polymarket.
 
 Finalmente, dame un análisis táctico completo en 3 párrafos y entrega DOS pronósticos finales:
@@ -1077,9 +1084,11 @@ function runPrediction() {
 
   pA = final_pA; pD = final_pD; pB = final_pB;
   const top3 = [...allScores].sort((x,y) => y.p - x.p).slice(0, 3);
+  const top5 = [...allScores].sort((x,y) => y.p - x.p).slice(0, 5);
   const btts   = allScores.filter(s => s.a > 0 && s.b > 0).reduce((acc,s) => acc+s.p, 0);
   const over25 = allScores.filter(s => s.a+s.b > 2).reduce((acc,s) => acc+s.p, 0);
   const csA    = allScores.filter(s => s.b === 0).reduce((acc,s) => acc+s.p, 0);
+  const csB    = allScores.filter(s => s.a === 0).reduce((acc,s) => acc+s.p, 0);
   const h2h    = getH2H(nameA, nameB);
 
   const userExtra = {
@@ -1095,7 +1104,8 @@ function runPrediction() {
     tA, tB,
     pA: pA.toFixed(1), pD: pD.toFixed(1), pB: pB.toFixed(1),
     maxI, maxJ, lA: lA.toFixed(3), lB: lB.toFixed(3),
-    h2h, squadF: sf, formF: ff, userExtra
+    h2h, squadF: sf, formF: ff, userExtra,
+    top5, btts: btts.toFixed(1), over25: over25.toFixed(1), csA: csA.toFixed(1), csB: csB.toFixed(1)
   };
 
   setTimeout(() => {
