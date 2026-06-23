@@ -222,6 +222,15 @@ function runPrediction() {
   const lA = Math.max(0.20, lA_base * ff.fA * sf.fA * hf.fA);
   const lB = Math.max(0.20, lB_base * ff.fB * sf.fB * hf.fB);
 
+  // --- INYECCIÓN DIRECTA DE TRANSFERMARKT SOBRE LA IA (A PETICIÓN DEL USUARIO) ---
+  // Amplificamos la jerarquía económica (squad) y la inyectamos sobre el cerebro matemático
+  nn_pA = nn_pA * Math.pow(sf.fA, 2.5) * ff.fA;
+  nn_pB = nn_pB * Math.pow(sf.fB, 2.5) * ff.fB;
+  let nn_total = nn_pA + nn_pD + nn_pB;
+  nn_pA = (nn_pA / nn_total) * 100;
+  nn_pD = (nn_pD / nn_total) * 100;
+  nn_pB = (nn_pB / nn_total) * 100;
+
   const matrix = buildMatrix(lA, lB);
   
   // Calculate raw matrix sum for scaling
@@ -395,7 +404,7 @@ function renderResults(tA, tB, matrix, pA, pD, pB, lA, lB, maxPct, maxI, maxJ, t
   document.getElementById('matrixWrapper').innerHTML = mhtml;
 
   document.getElementById('modelExplainer').innerHTML = `
-    <strong>🧠 Arquitectura Híbrida:</strong> Las probabilidades base (Ganador 1X2) están siendo inyectadas directamente por la <strong>Red Neuronal V2.0 (58% de acierto)</strong> usando el Ranking ELO Dinámico en tiempo real y el historial de +15.000 partidos de la base de datos de Kaggle. Luego, esos porcentajes se mapean bivariadamente usando <strong>Dixon-Coles</strong> para descubrir cuáles son los marcadores exactos más probables que cumplen con la predicción de la IA.
+    <strong>🧠 Arquitectura Híbrida:</strong> Las probabilidades base están siendo inyectadas por la <strong>Red Neuronal V2.0 (58% de acierto)</strong> usando Ranking ELO Dinámico e historial. <strong>¡NUEVO:</strong> A pedido del usuario, el algoritmo Javascript ahora secuestra la decisión de la IA y le inyecta <strong>Brutalmente el Valor de Transfermarkt (Jerarquía) y Forma Reciente</strong> sobre la probabilidad de la máquina para predecir el Mundial 2026. Finalmente, Dixon-Coles dibuja el marcador exacto.
   `;
 
   document.getElementById('resultSection').classList.add('visible');
