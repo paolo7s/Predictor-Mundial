@@ -26,20 +26,23 @@ Los Lambdas base no son estáticos. Antes de entrar al motor de Poisson, sufren 
 
 La aplicación actúa como un puente (frontend) para analistas humanos asistidos por IA. No entrega un pronóstico ciego, sino que funciona como un **generador de contexto de alta densidad**.
 
-### El Módulo "Intuición del Analista"
-Permite al usuario (el "Míster") inyectar sus propias lecturas tácticas sobre el partido:
-- Expectativa de xG manual.
-- Probabilidades de Valla Invicta.
-- Probabilidades del mercado Over 2.5 / Ambos Marcan.
-- Ponderación directa al resultado clásico 1X2.
+### El Módulo "Intuición del Analista" y Aislamiento Matemático
+Es crucial destacar que **la intuición humana del analista NO corrompe ni influye sobre el cálculo estadístico puro** generado por la aplicación. El motor matemático de Dixon-Coles siempre entregará resultados crudos y objetivos. 
 
-### Ingeniería de Prompts Dinámicos
-Al finalizar la simulación, el sistema compila toda la matriz probabilística (los 5 resultados exactos más probables, % de vallas invictas, etc.) junto con la intuición humana, y genera un comando estructurado para ser ejecutado por un LLM (Local o API). 
+La intuición del usuario (expectativas de xG, vallas invictas, etc.) solamente se refleja al final del proceso, inyectándose de forma aislada dentro del prompt final generado.
 
-Este prompt instruye a la IA a realizar tareas que la matemática pura no puede hacer:
-1. **Scraping de Mercado Financiero:** Analizar las cuotas de casas de apuestas y contratos en Polymarket.
-2. **Contexto de Fase de Grupos:** Leer noticias en tiempo real, evaluar lesionados y analizar matemáticamente si a los equipos les "sirve el empate" basado en el fixture restante.
-3. **Pronóstico Dual:** Emitir un *Pronóstico Estadístico Puro* y un *Pronóstico Ponderado por el Mercado*.
+### Ingeniería de Prompts Dinámicos y Predicción Real
+Al finalizar la simulación, el sistema compila toda la matriz teórica probabilística (los 5 resultados exactos más probables, % de vallas invictas, BTTS, etc.) junto con la intuición humana, generando un comando estructurado para ser ejecutado por un LLM.
+
+La función vital de este prompt es guiar a la IA para que contraste los datos teóricos previamente calculados con **información del mundo real en tiempo real**, investigando:
+- Las cuotas en las prestigiosas **casas de apuestas**.
+- El sentimiento financiero del **mercado de Polymarket**.
+- Las **últimas noticias** y la situación actual de los jugadores (lesiones, suspensiones, estado anímico).
+- El **contexto de fase de grupos**, considerando empates convenientes o la urgencia de puntos basada en los rivales restantes.
+
+Finalmente, a partir de toda esta información, la IA emitirá obligatoriamente **dos pronósticos distintos**:
+1. **Pronóstico Estadístico Puro:** Analizando solo el fútbol, las estadísticas teóricas y las noticias, *sin estar influenciado* por lo que dicte el mercado financiero o las apuestas.
+2. **Pronóstico Ponderado por el Mercado:** Un resultado híbrido que equilibra la realidad futbolística con las tendencias y cuotas del dinero global.
 
 ## 📊 Fuentes de Datos y Recolección Estadística
 
