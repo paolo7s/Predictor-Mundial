@@ -1,5 +1,7 @@
 # Mundial 2026 Predictor - Motor Estadístico y AI
 
+🌐 **Enlace directo a la aplicación:** [https://paolo7s.github.io/PredictorWeb/](https://paolo7s.github.io/PredictorWeb/)
+
 Una aplicación web interactiva diseñada para proyectar resultados de fútbol de selecciones en entornos neutrales (como la Copa del Mundo). Este proyecto combina un motor matemático probabilístico clásico con una capa de integración de Inteligencia Artificial para entregar pronósticos tácticos profundos.
 
 ## 🧠 Arquitectura del Motor Estadístico
