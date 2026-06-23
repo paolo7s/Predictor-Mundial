@@ -40,3 +40,15 @@ Este prompt instruye a la IA a realizar tareas que la matemática pura no puede 
 1. **Scraping de Mercado Financiero:** Analizar las cuotas de casas de apuestas y contratos en Polymarket.
 2. **Contexto de Fase de Grupos:** Leer noticias en tiempo real, evaluar lesionados y analizar matemáticamente si a los equipos les "sirve el empate" basado en el fixture restante.
 3. **Pronóstico Dual:** Emitir un *Pronóstico Estadístico Puro* y un *Pronóstico Ponderado por el Mercado*.
+
+## 📊 Fuentes de Datos y Recolección Estadística
+
+El motor de la aplicación se alimenta de una base de datos estática (`js/data.js`) compuesta por 48 selecciones nacionales. Todos los valores iniciales y parámetros matemáticos han sido calculados utilizando las siguientes fuentes y metodologías:
+
+- **Goles Esperados (xG) a Favor y en Contra:** Los promedios de `xG` y `xGA` fueron extraídos y calculados a partir de las plataformas de data-scouting y analítica (como Opta y FBref), promediando el rendimiento de cada selección en sus últimas **20 fechas oficiales FIFA**.
+- **Forma Reciente (Momentum):** Se evalúa bajo una escala de `0 a 1`, basándose en el porcentaje de puntos obtenidos (y calidad del rival) durante la última ventana de **10 partidos internacionales** (incluyendo amistosos Clase A).
+- **Jerarquía de Plantel:** Una puntuación algorítmica de `0 a 10` que pondera el valor de mercado total del plantel (vía Transfermarkt), la presencia de jugadores de élite (Top 5 ligas de Europa) y la profundidad del banquillo.
+- **Rankings y Sembrados:** Se utilizan como referencia el Ranking FIFA oficial proyectado hacia 2025/2026.
+- **Desempeño en Torneos Mayores:** Las variables tienen un fuerte ajuste de "estrés competitivo" originado en el rendimiento empírico de las selecciones durante la Copa del Mundo Qatar 2022, la EURO 2024, la Copa América 2024, y las Clasificatorias Mundialistas actuales (CONMEBOL, UEFA, AFC, CAF, CONCACAF).
+
+Para el módulo guiado por IA, la fuente de datos pasa a ser **dinámica**, consumiendo en tiempo real datos probabilísticos del mercado financiero predictivo de **Polymarket** y cuotas consolidadas de prestigiosas casas de apuestas deportivas.
