@@ -209,12 +209,12 @@ RESULTADOS DEL MOTOR BIVARIADO (Dixon-Coles + Intuición):
   5. ${top5[4].a}-${top5[4].b} (${top5[4].p.toFixed(1)}%)${extraText}
 
 Por favor, necesito que hagas lo siguiente investigando en tiempo real:
-1. Busca la situación de ambos equipos en la fase de grupos. Determina la urgencia de victoria o si un empate les conviene, analizando especialmente la especulación sobre LOS RIVALES QUE LES QUEDAN (ej: si les queda un rival débil, un empate hoy puede no ser malo; si les queda un rival fuerte, están obligados a ganar hoy).
+1. Analiza el contexto de esta fase de eliminatoria directa (mata-mata). Determina si alguno de los equipos llega con ventaja física (más días de descanso tras la fase anterior), evalúa su historial reciente en tandas de penales (ya que un empate los llevará a prórroga) y qué equipo tiene más presión histórica para avanzar de ronda.
 2. Lee las últimas noticias relevantes sobre el estado físico, lesiones o situación anímica/interna de ambos equipos.
 3. Busca e investiga las probabilidades y cuotas reales actuales en prestigiosas casas de apuestas y Polymarket.
 
 Finalmente, dame un análisis táctico completo en 3 párrafos y entrega DOS pronósticos finales:
-- Pronóstico A (Estadístico Puro): Basado solo en la estadística del modelo, noticias, contexto del grupo y la intuición del analista, SIN considerar el mercado financiero.
+- Pronóstico A (Estadístico Puro): Basado solo en la estadística del modelo, noticias, contexto de la eliminatoria y la intuición del analista, SIN considerar el mercado financiero.
 - Pronóstico B (Mercado Ponderado): Integrando el pronóstico A con la "Sabiduría del Mercado" (casas de apuestas y Polymarket).`;
 
   navigator.clipboard.writeText(prompt).then(() => {
